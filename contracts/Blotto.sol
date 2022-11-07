@@ -55,7 +55,7 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
         emit BoughtTicket(_msgSender(), tokenAmount);
     }
 
-    function drawing() {}
+//    function drawing() {}
 
 
     function pause() external onlyOwner {
