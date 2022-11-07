@@ -2,7 +2,7 @@ Blockchain Lottery!
 
 ** HIGH LEVEL **
 - Create a lottery that exists solely on the blockchain
-- Designed as a DAO with Snapshot for voting & Gnosis Safe for Treasury
+- Designed as a DAO with Snapshot for Voting & Gnosis Safe for Treasury
 - Chainlink VRF - for generating the random numbers
 - Chainlink Automation - for the drawing to be on schedule
 - Lottery proceeds allocated as follows: 
