@@ -23,7 +23,7 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
     }
 
     struct TicketInfo {
-        uint16 lottery;
+        uint16 lottery_id;
         uint256 purchaseTS;
         uint256 amount;
         bool winner;
@@ -31,6 +31,7 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
 
     Token private blotToken;
     LotteryState public s_lotteryState;
+    uint16 public storage s_lottery_id;     // needs to be incremented for each lottery    
 
     event BoughtTicket(address indexed from, uint256 amount);
 
@@ -38,6 +39,22 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
 
     mapping(address => TicketInfo) public ticketinfos;  // need to review this data structure
 
+/* a lottery is the data structure thats mapped
+n lotteries
+
+lottery_id
+lottery_date
+lottery_winner
+
+ticket_id
+ticket_purchase_date
+lottery_id
+total tickets purchased?
+
+ need to determine how the winner wins.  is it a 1-1 on a token?  token price can change
+
+
+*/
     constructor(Token _tokenAddress) {
         require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");                
         blotToken = _tokenAddress;
