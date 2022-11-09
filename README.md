@@ -9,3 +9,10 @@ Blockchain Lottery!
     a. 1st Winner - 80%
     b. Charity - 19%
     c. Returned to DAO Treasury for Operations - 1%
+
+*********************************
+Uses:
+https://github.com/wighawag/hardhat-deploy
+npm install --save-dev prettier-plugin-solidity prettier -----> peer dependency, may not be needed?
+npm install dotenv --save -----> peer dependency, may not be needed?
+
