@@ -20,8 +20,7 @@ interface Token {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (uint256);    
 }
 
-//contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
-contract Blotto is Pausable, Ownable, ReentrancyGuard {
+contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     address[] private s_ticketAddresses;
 
@@ -45,7 +44,28 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
     event BoughtTicket(uint16 indexed s_lottery_id, address indexed from, uint256 amount);
     event WinnerPicked(uint16 indexed s_lottery_id, address indexed winner);
 
-    constructor(Token _tokenAddress) {
+    uint256 public immutable i_entryMinimum;
+    uint256 public immutable i_interval;
+    VRFCoordinatorV2Interface public immutable i_vrfCoordinatorV2;
+    bytes32 public immutable i_gasLane;
+    uint64 public immutable i_subscription_id;
+    uint32 public immutable i_callbackGasLimit;
+
+    constructor(Token _tokenAddress,
+        uint256 entryMinimum,
+        uint256 interval,
+        address vrfCoordinatorV2,
+        bytes32 gasLane, //keyhash - decide on how much gas
+        uint64 subscription_id,
+        uint32 callbackGasLimit
+    ) VRFConsumerBaseV2(vrfCoordinatorV2) {
+        i_entryMinimum = entryMinimum;
+        i_interval = interval;
+        i_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
+        i_gasLane = gasLane;
+        i_subscription_id = subscription_id;
+        i_callbackGasLimit = callbackGasLimit;
+
         require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");                
         blotToken = _tokenAddress;
         s_lotteryStateOpen = true;
@@ -72,9 +92,7 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
         emit BoughtTicket(s_lottery_id, _msgSender(), tokenAmount);
     }
 
-//    function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
-/*
-
+    function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
 // add a require / revert to make sure at least 1 ticket was purchased
 
 //        address[] memory tokenAddressTickets;
@@ -105,7 +123,7 @@ contract Blotto is Pausable, Ownable, ReentrancyGuard {
 
         emit WinnerPicked(s_lottery_id, winner);
     }
-*/
+
 
     function pause() external onlyOwner {
         _pause();
