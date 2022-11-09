@@ -6,9 +6,6 @@ Blockchain Lottery!
 - Chainlink VRF - for generating the random numbers
 - Chainlink Automation - for the drawing to be on schedule
 - Lottery proceeds allocated as follows: 
-1) Lottery Winners
-    a. 1st Winner - 55%
-    b. 2nd Winner - 15%
-    c. 3rd Winner - 10%
-2) Charity - 19%
-3) Returned to DAO Treasury for Operations - 1%
+    a. 1st Winner - 80%
+    b. Charity - 19%
+    c. Returned to DAO Treasury for Operations - 1%
