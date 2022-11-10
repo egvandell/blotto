@@ -4,3 +4,5 @@ node_modules
 cache
 artifacts
 
+# don't push the environment vars!
+.env
