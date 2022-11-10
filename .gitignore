@@ -6,3 +6,5 @@ artifacts
 
 # don't push the environment vars!
 .env
+
+yarn-error.log

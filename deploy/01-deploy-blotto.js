@@ -1,13 +1,9 @@
-//const { getNamedAccounts } = require("hardhat")
-
 const ENTRY_MINIMUM_TOKENS = 1000
-const TOKEN_ADDRESS = 0x0000000000000000000000000000000000000000
-
+const TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 module.exports = async ({ getNamedAccounts, deployments}) => {
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
-
     const args = [
         TOKEN_ADDRESS, 
         ENTRY_MINIMUM_TOKENS, 
