@@ -13,6 +13,11 @@ Blockchain Lottery!
 *********************************
 Uses:
 https://github.com/wighawag/hardhat-deploy
-npm install --save-dev prettier-plugin-solidity prettier -----> peer dependency, may not be needed?
-npm install dotenv --save -----> peer dependency, may not be needed?
 
+must use yarn - dependencies failed on mac & pc using npm for hardhat-deploy
+
+yarn add --dev hardhat-deploy
+yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers
+yarn add --dev prettier-plugin-solidity prettier
+yarn add --dev dotenv
+yarn add --dev @nomiclabs/hardhat-waffle

@@ -1,6 +1,6 @@
-require('hardhat-deploy');
-require("dotenv").config();
-require("@nomiclabs/hardhat-waffle");
+require('hardhat-deploy')
+require("dotenv").config()
+require("@nomiclabs/hardhat-waffle")
 
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -16,16 +16,16 @@ module.exports = {
         chainId: 5,
     },
     mainnet: {
-        url: MAINNET_RPC_URL,
+        url: process.env.MAINNET_RPC_URL,
         accounts: [process.env.PRIVATE_KEY],
         saveDeployments: true,
         chainId: 1,
-    },
-    namedAccounts: {
-      deployer: {
-        default: 0,
-      },
-    },
-    solidity: "0.8.7",
-  }
+    }
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+    }
+  },
+  solidity: "0.8.5",
 };
