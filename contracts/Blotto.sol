@@ -52,6 +52,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     uint32 public immutable i_callbackGasLimit;
 
     constructor(Token _tokenAddress,
+//    constructor(
         uint256 entryMinimum,
         uint256 interval,
         address vrfCoordinatorV2,
@@ -65,7 +66,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         i_gasLane = gasLane;
         i_subscription_id = subscription_id;
         i_callbackGasLimit = callbackGasLimit;
-
+//        address _tokenAddress = 0x48c73191212c039E7C8c2660473dFa7D60d59B4D;
         require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");                
         blotToken = _tokenAddress;
         s_lotteryStateOpen = true;
