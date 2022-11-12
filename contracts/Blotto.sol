@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol';
 import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
 
+import "hardhat/console.sol";
 
 error Lottery_NotEnoughTokensSent();
 error Lottery_NeedMoreTokensInsufficientBalance();
@@ -18,6 +19,7 @@ interface Token {
     function transfer(address recipient, uint256 amount) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
     function transferFrom(address sender, address recipient, uint256 amount) external returns (uint256);    
+    function approve(address spender, uint256 amount) external returns (bool);
 }
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
@@ -70,13 +72,25 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         s_lotteryStateOpen = true;
     }
 
-    function buyTicket(uint256 tokenAmount) external payable whenNotPaused {
+    function buyTicket(uint256 tokenAmount) external payable whenNotPaused {   
+        console.log("entered butTicket");
+
+
         if (tokenAmount == 0) { revert Lottery_NotEnoughTokensSent(); }
-        if (blotToken.balanceOf(_msgSender()) >= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
+        if (blotToken.balanceOf(_msgSender()) <= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
         if (!s_lotteryStateOpen) { revert Lottery_LotteryNotOpen(); }
 
-        blotToken.transferFrom(_msgSender(), address(this), tokenAmount);
-
+/*
+        payable _to = address(this);
+        require (blotToken.approve (_to, tokenAmount), "approve 1 failed");
+        (bool success, ) =  _to.call{value: msg.value}(""); // Supposed to call transferFrom
+        require (success, "Success Was not true1");
+        require (blotToken.approve (_to, 0), "approve 2 failed"); // Wipe out any unspent allowance
+*/
+        console.log("before approve");
+//        blotToken.approve(address(this), tokenAmount);
+        console.log("aft approve");
+//        blotToken.transferFrom(_msgSender(), address(this), tokenAmount);
 
 
 
@@ -89,6 +103,16 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 //        s_ticketsBought[s_lottery_id] += tokenAmount;
 
         emit BoughtTicket(s_lottery_id, _msgSender(), tokenAmount);
+    }
+
+    function Tester(uint256 testint) external view {
+        console.log("entered Tester with testint = %s", testint);
+
+    }
+
+    function PayableTester(uint256 testint) external payable {
+        console.log("entered PayableTester with msg.value = %s and testint = %s", msg.value, testint);
+
     }
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
@@ -123,6 +147,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         emit WinnerPicked(s_lottery_id, winner);
     }
 
+     // Add the `receive()` special function
+    receive() external payable { }
 
     function pause() external onlyOwner {
         _pause();

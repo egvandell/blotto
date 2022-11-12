@@ -21,3 +21,21 @@ yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers
 yarn add --dev prettier-plugin-solidity prettier
 yarn add --dev dotenv
 yarn add --dev @nomiclabs/hardhat-waffle
+***********
+create dir frontend
+
+yarn create next-app . --js --no-eslint
+yarn add moralis react-moralis web3uikit
+yarn add --dev tailwindcss postcss autoprefixer
+yarn tailwindcss init -p
+
+yarn add moralis-v1
+yarn add @web3auth/web3auth magic-sdk@7.0.0
+
+need to combine the above yarn commands at some point
+
+go here and modify the 2 files: https://tailwindcss.com/docs/guides/nextjs
+yarn run dev
+
+yarn add --dev ethers
+​yarn add --dev @nomiclabs/hardhat-ethers
