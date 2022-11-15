@@ -35,8 +35,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     bool public s_lotteryStateOpen;
     uint16 public s_lottery_id;
 
-    address constant public CHARITY_ADDRESS_HERE = 0x0000000000000000000000000000000000000000;
-    address constant public DAO_ADDRESS_HERE = 0x0000000000000000000000000000000000000000;
+    address private CHARITY_ADDRESS_HERE;
+    address private DAO_ADDRESS_HERE;
 
     mapping(uint16 => mapping(address => TicketInfo)) private s_ticketInfos;
     mapping(uint16 => uint256) private s_ticketsBought;
@@ -73,7 +73,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     }
 
     function buyTicket(uint256 tokenAmount) external payable whenNotPaused {   
-        console.log("entered butTicket");
+        console.log("entered buyTicket");
 
 
         if (tokenAmount == 0) { revert Lottery_NotEnoughTokensSent(); }
@@ -105,8 +105,16 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         emit BoughtTicket(s_lottery_id, _msgSender(), tokenAmount);
     }
 
+    function setCharityAddress(address _address) public {
+        CHARITY_ADDRESS_HERE = _address;
+    }
+
+    function getCharityAddress() public view returns (address) {
+        return CHARITY_ADDRESS_HERE;
+    }
+
     function Tester(uint256 testint) external view {
-        console.log("entered Tester with testint = %s", testint);
+        console.log("entered PayableTester with testint = %s", testint);
 
     }
 
