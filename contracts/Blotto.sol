@@ -33,7 +33,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     Token public blotToken;
     bool public s_lotteryStateOpen;
-    uint16 public s_lottery_id;
+    uint16 private s_lottery_id;
 
     address private CHARITY_ADDRESS_HERE;
     address private DAO_ADDRESS_HERE;
@@ -72,7 +72,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         s_lotteryStateOpen = true;
     }
 
-    function buyTicket(uint256 tokenAmount) external payable whenNotPaused {   
+    function buyTicket(uint256 tokenAmount) external whenNotPaused {   
         console.log("entered buyTicket");
 
 
@@ -88,9 +88,15 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         require (blotToken.approve (_to, 0), "approve 2 failed"); // Wipe out any unspent allowance
 */
         console.log("before approve");
-//        blotToken.approve(address(this), tokenAmount);
-        console.log("aft approve");
-//        blotToken.transferFrom(_msgSender(), address(this), tokenAmount);
+//        blotToken.approve(_msgSender(), tokenAmount);
+
+//    bool approved = blotToken.approve(msg.sender, tokenAmount);
+
+//    require (approved, "Was not approved");
+
+//        console.log("aft approve. approved bool = %s", approved);
+
+//        blotToken.transferFrom(msg.sender, address(this), tokenAmount);
 
 
 
@@ -102,7 +108,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 //        s_ticketInfos[s_lottery_id][_msgSender()].totalTokens += tokenAmount;
 //        s_ticketsBought[s_lottery_id] += tokenAmount;
 
-        emit BoughtTicket(s_lottery_id, _msgSender(), tokenAmount);
+//        emit BoughtTicket(s_lottery_id, _msgSender(), tokenAmount);
     }
 
     function setCharityAddress(address _address) public {
@@ -111,6 +117,18 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function getCharityAddress() public view returns (address) {
         return CHARITY_ADDRESS_HERE;
+    }
+
+    function getLotteryId() public view returns (uint16) {
+        return s_lottery_id;
+    }
+
+    function getTokenBalanceSender() public view returns (uint256) {
+        return blotToken.balanceOf(_msgSender());
+    }
+
+    function getTokenBalanceContract() public view returns (uint256) {
+        return blotToken.balanceOf(address(this));
     }
 
     function Tester(uint256 testint) external view {
