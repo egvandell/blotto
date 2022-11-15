@@ -14,12 +14,14 @@ import "hardhat/console.sol";
 error Lottery_NotEnoughTokensSent();
 error Lottery_NeedMoreTokensInsufficientBalance();
 error Lottery_LotteryNotOpen();
+error Lottery_NoTokensSentForApproval();
 
 interface Token {
     function transfer(address recipient, uint256 amount) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
     function transferFrom(address sender, address recipient, uint256 amount) external returns (uint256);    
     function approve(address spender, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
 }
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
@@ -72,7 +74,12 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         s_lotteryStateOpen = true;
     }
 
-    function buyTicket(uint256 tokenAmount) external whenNotPaused {   
+    function approveTokens(uint256 tokenAmount) public whenNotPaused {
+        if (tokenAmount == 0) { revert Lottery_NoTokensSentForApproval(); }
+        require (blotToken.approve (msg.sender, tokenAmount), "approve failed");
+    }
+
+    function buyTicket(uint256 tokenAmount) public payable whenNotPaused {   
         console.log("entered buyTicket");
 
 
@@ -80,14 +87,15 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         if (blotToken.balanceOf(_msgSender()) <= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
         if (!s_lotteryStateOpen) { revert Lottery_LotteryNotOpen(); }
 
+
+//        address payable _to = payable(address(this));
 /*
-        payable _to = address(this);
-        require (blotToken.approve (_to, tokenAmount), "approve 1 failed");
+        require (blotToken.approve (msg.sender, tokenAmount), "approve 1 failed");
         (bool success, ) =  _to.call{value: msg.value}(""); // Supposed to call transferFrom
         require (success, "Success Was not true1");
-        require (blotToken.approve (_to, 0), "approve 2 failed"); // Wipe out any unspent allowance
+        require (blotToken.approve (msg.sender, 0), "approve 2 failed"); // Wipe out any unspent allowance
 */
-        console.log("before approve");
+//        console.log("before approve");
 //        blotToken.approve(_msgSender(), tokenAmount);
 
 //    bool approved = blotToken.approve(msg.sender, tokenAmount);
@@ -125,6 +133,10 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function getTokenBalanceSender() public view returns (uint256) {
         return blotToken.balanceOf(_msgSender());
+    }
+
+    function getTokenAllowance() public view returns (uint256) {
+        return blotToken.allowance(_msgSender(), address(blotToken));
     }
 
     function getTokenBalanceContract() public view returns (uint256) {
