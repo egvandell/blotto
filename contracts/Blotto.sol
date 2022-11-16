@@ -74,10 +74,27 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         s_lotteryStateOpen = true;
     }
 
+    function getTokenAllowance() public view returns (uint256) {
+
+        console.log("_msgSender() = %s", _msgSender());
+        console.log("address(this) = %s", address(this));
+        console.log( blotToken.allowance(_msgSender(), address(this)));
+        
+        return blotToken.allowance(_msgSender(), address(this));
+    }
+
     function approveTokens(uint256 tokenAmount) public whenNotPaused {
         if (tokenAmount == 0) { revert Lottery_NoTokensSentForApproval(); }
-        require (blotToken.approve (msg.sender, tokenAmount), "approve failed");
+        bool approved = blotToken.approve (address(this), tokenAmount);
+        require (approved, "approve failed");
+        
+        console.log("address(this) = %s", address(this));
+        console.log("tokenAmount = %s", tokenAmount);
+        console.log("blotToken = %s", address(blotToken));
+        console.log("approved = %s", approved);
+
     }
+
 
     function buyTicket(uint256 tokenAmount) public payable whenNotPaused {   
         console.log("entered buyTicket");
@@ -133,10 +150,6 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function getTokenBalanceSender() public view returns (uint256) {
         return blotToken.balanceOf(_msgSender());
-    }
-
-    function getTokenAllowance() public view returns (uint256) {
-        return blotToken.allowance(_msgSender(), address(blotToken));
     }
 
     function getTokenBalanceContract() public view returns (uint256) {
