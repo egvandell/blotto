@@ -186,7 +186,14 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     }
 
      // Add the `receive()` special function
-    receive() external payable { }
+    receive() external payable {} // to support receiving ETH by default
+    fallback() external payable {}
+
+    function supportsInterface(bytes4 interfaceID) external pure { }
+    function decimals() external pure { }
+    function symbol() external pure { }
+    function name() external pure { }
+
 
     function pause() external onlyOwner {
         _pause();
