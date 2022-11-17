@@ -88,11 +88,12 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         bool approved = blotToken.approve (address(this), tokenAmount);
         require (approved, "approve failed");
         
+        /*
         console.log("address(this) = %s", address(this));
         console.log("tokenAmount = %s", tokenAmount);
         console.log("blotToken = %s", address(blotToken));
         console.log("approved = %s", approved);
-
+*/
     }
 
 
