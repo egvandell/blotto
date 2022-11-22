@@ -77,4 +77,15 @@ contract Blotto2 is Ownable {
     function getBlotTokenAddress() public view returns (address) {
         return address(blotToken);
     }
+
+    function getLotteryId() public view returns (uint16) {
+        return s_lottery_id;
+    }
+
+    receive() external payable {} // to support receiving ETH by default
+    fallback() external payable {}
+    function supportsInterface(bytes4 interfaceID) external pure { }
+    function decimals() external pure { }
+    function symbol() external pure { }
+    function name() external pure { }
 }
