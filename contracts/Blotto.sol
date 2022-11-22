@@ -1,21 +1,25 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "./BlottoToken.sol";
+
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol';
 import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
 
 import "hardhat/console.sol";
 
+
 error Lottery_NotEnoughTokensSent();
 error Lottery_NeedMoreTokensInsufficientBalance();
 error Lottery_LotteryNotOpen();
 error Lottery_NoTokensSentForApproval();
 
+/*
 interface Token {
     function transfer(address recipient, uint256 amount) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
@@ -23,6 +27,7 @@ interface Token {
     function approve(address spender, uint256 amount) external returns (bool);
     function allowance(address owner, address spender) external view returns (uint256);
 }
+*/
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -33,7 +38,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         uint256 totalTokens;
     }
 
-    Token public blotToken;
+    BlottoToken public blotToken;
     bool public s_lotteryStateOpen;
     uint16 private s_lottery_id;
 
@@ -55,7 +60,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     uint64 public immutable i_subscription_id;
     uint32 public immutable i_callbackGasLimit;
 
-    constructor(Token _tokenAddress,
+    constructor(address _tokenAddress,
         uint256 entryMinimum,
         uint256 interval,
         address vrfCoordinatorV2,
@@ -63,6 +68,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         uint64 subscription_id,
         uint32 callbackGasLimit
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
+        blotToken = BlottoToken(_tokenAddress);
         i_entryMinimum = entryMinimum;
         i_interval = interval;
         i_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
@@ -70,12 +76,10 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         i_subscription_id = subscription_id;
         i_callbackGasLimit = callbackGasLimit;
         require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");                
-        blotToken = _tokenAddress;
         s_lotteryStateOpen = true;
     }
 
     function getTokenAllowance() public view returns (uint256) {
-
         console.log("_msgSender() = %s", _msgSender());
         console.log("address(this) = %s", address(this));
         console.log( blotToken.allowance(_msgSender(), address(this)));
@@ -84,25 +88,35 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     }
 
     function approveTokens(uint256 tokenAmount) public whenNotPaused {
-        if (tokenAmount == 0) { revert Lottery_NoTokensSentForApproval(); }
+//        if (tokenAmount == 0) { revert Lottery_NoTokensSentForApproval(); }
         bool approved = blotToken.approve (address(this), tokenAmount);
         require (approved, "approve failed");
         
-        /*
+        console.log("msg.sender = %s", msg.sender);
         console.log("address(this) = %s", address(this));
         console.log("tokenAmount = %s", tokenAmount);
         console.log("blotToken = %s", address(blotToken));
         console.log("approved = %s", approved);
-*/
+
+    }
+
+    function buyTicket(uint256 tokenAmount) public payable whenNotPaused {   
+//        bool approved = blotToken.approve(msg.sender, tokenAmount);
+//        require (approved, "Was not approved");
+        console.log("msg.sender = %s", _msgSender());
+        console.log("balanceOf = %s", blotToken.balanceOf(_msgSender()));
+
+//        console.log("blotToken.balanceOf(_msgSender() = %s", blotToken.balanceOf(_msgSender());
+        blotToken.transfer(address(this), tokenAmount);
     }
 
 
-    function buyTicket(uint256 tokenAmount) public payable whenNotPaused {   
+    function buyTicketOld(uint256 tokenAmount) public payable whenNotPaused {   
         console.log("entered buyTicket");
 
 
         if (tokenAmount == 0) { revert Lottery_NotEnoughTokensSent(); }
-        if (blotToken.balanceOf(_msgSender()) <= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
+        if (blotToken.balanceOf(_msgSender())>= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
         if (!s_lotteryStateOpen) { revert Lottery_LotteryNotOpen(); }
 
 
@@ -147,6 +161,10 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function getLotteryId() public view returns (uint16) {
         return s_lottery_id;
+    }
+
+    function getBlotTokenAddress() public view returns (address) {
+        return address(blotToken);
     }
 
     function getTokenBalanceSender() public view returns (uint256) {
@@ -199,6 +217,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         emit WinnerPicked(s_lottery_id, winner);
     }
 
+/*
      // Add the `receive()` special function
     receive() external payable {} // to support receiving ETH by default
     fallback() external payable {}
@@ -207,7 +226,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     function decimals() external pure { }
     function symbol() external pure { }
     function name() external pure { }
-
+*/
 
     function pause() external onlyOwner {
         _pause();
