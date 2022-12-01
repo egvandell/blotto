@@ -53,6 +53,10 @@ contract Blotto2 is Ownable {
         s_lotteryStateOpen = true;
     }
 
+    function getBlockNumber1() public view returns (uint256) {
+        return block.number;
+    }
+
     function getTokenAllowance() public view returns (uint256) {
         console.log("_msgSender() = %s", _msgSender());
         console.log("address(this) = %s", address(this));
@@ -72,6 +76,26 @@ contract Blotto2 is Ownable {
         console.log("blotToken = %s", address(blotToken));
         console.log("approved = %s", approved);
 
+        console.log("blotToken.allowance(_msgSender(), address(this)) = %s", 
+            blotToken.allowance(_msgSender(), address(this)));
+
+    }
+
+    function buyTicket(uint256 tokenAmount) public payable {   
+//        bool approved = blotToken.approve(msg.sender, tokenAmount);
+//        require (approved, "Was not approved");
+        console.log("msg.sender = %s", _msgSender());
+        console.log("tokenAmount = %s", tokenAmount);
+//        console.log("blotToken.allowance(_msgSender(), address(this)) = %s", 
+           // blotToken.allowance(_msgSender(), address(this)));
+
+        console.log("blotToken.balanceOf(_msgSender() = %s", blotToken.balanceOf(_msgSender()));
+
+//        bool approved = blotToken.approve (address(this), tokenAmount);
+//        require (approved, "approve failed");
+//        console.log("approved = %s", approved);
+
+        blotToken.transferFrom(msg.sender, address(this), tokenAmount);
     }
 
     function getBlotTokenAddress() public view returns (address) {
@@ -80,6 +104,14 @@ contract Blotto2 is Ownable {
 
     function getLotteryId() public view returns (uint16) {
         return s_lottery_id;
+    }
+
+    function getTokenBalanceSender() public view returns (uint256) {
+        return blotToken.balanceOf(_msgSender());
+    }
+
+    function getTokenBalanceContract() public view returns (uint256) {
+        return blotToken.balanceOf(address(this));
     }
 
     receive() external payable {} // to support receiving ETH by default
