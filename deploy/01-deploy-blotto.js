@@ -16,7 +16,7 @@ module.exports = async ({ getNamedAccounts, deployments}) => {
         networkConfig[chainId]["callbackGasLimit"], 
     ]
 
-    const blotto = await deploy("Blotto2", {
+    const blotto = await deploy("Blotto", {
         from: deployer,
         args: args,
         log: true,
@@ -24,6 +24,6 @@ module.exports = async ({ getNamedAccounts, deployments}) => {
     })
 
     console.log(
-        `Deployed Blotto2.sol to ${blotto.address} with ${process.env.TOKEN_ADDRESS} as BlottoToken address`
+        `Deployed Blotto.sol to ${blotto.address} with ${process.env.TOKEN_ADDRESS} as BlottoToken address`
       );
 }
