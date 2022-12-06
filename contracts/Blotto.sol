@@ -53,7 +53,7 @@ contract Blotto is Ownable {
         s_lotteryStateOpen = true;
     }
 
-    function getBlockNumber1() public view returns (uint256) {
+    function getTheBlockNumber() public view returns (uint256) {
         return block.number;
     }
 
