@@ -1,36 +1,43 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+
 import "./BlottoToken.sol";
+
+import '@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol';
+import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
+
 import "hardhat/console.sol";
 
+error Lottery_NotEnoughTokensSent();
+error Lottery_AllowanceNotEnough();
+error Lottery_NeedMoreTokensInsufficientBalance();
+error Lottery_NotOpen();
+error Lottery_NoTicketsAcquired();
 
-contract Blotto is Ownable {
-    address[] private s_ticketAddresses;
+contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
+    // need to add logic so only the DAO can change these via multisig wallat
+    address public CHARITY_ADDRESS;                     // Current Charity Address
+    address public DAO_ADDRESS;                         // BlottoDAO address
 
-    struct TicketInfo {
-        uint16 lottery_id;
-        uint256 totalTokens;
-    }
+    mapping(uint16 => address) public BlottoWinners;    // lottery_id to winner address
+    BlottoToken public blotToken;                       // $BLOT
+    bool public s_lotteryStateOpen;                     // Blotto state
 
-    BlottoToken public blotToken;
-    bool public s_lotteryStateOpen;
-    uint16 private s_lottery_id;
+    uint16 private s_lottery_id;                        // current lottery id, defaults to 0
+    address[] private s_ticketAddresses;                // each index is an individual ticket
 
-    address private CHARITY_ADDRESS_HERE;
-    address private DAO_ADDRESS_HERE;
-
-    mapping(uint16 => mapping(address => TicketInfo)) private s_ticketInfos;
-    mapping(uint16 => uint256) private s_ticketsBought;
-
-//    mapping(address => uint256) public addressToken;
-
-    event BoughtTicket(uint16 indexed s_lottery_id, address indexed from, uint256 amount);
+    event GotTicket(uint16 indexed s_lottery_id, address indexed from, uint256 amount);
     event WinnerPicked(uint16 indexed s_lottery_id, address indexed winner);
+    event TicketTransferred(uint16 indexed s_lottery_id, address indexed target, uint256 amount);
 
     uint256 public immutable i_entryMinimum;
     uint256 public immutable i_interval;
+    VRFCoordinatorV2Interface public immutable i_vrfCoordinatorV2;
     bytes32 public immutable i_gasLane;
     uint64 public immutable i_subscription_id;
     uint32 public immutable i_callbackGasLimit;
@@ -42,60 +49,85 @@ contract Blotto is Ownable {
         bytes32 gasLane, //keyhash - decide on how much gas
         uint64 subscription_id,
         uint32 callbackGasLimit
-    ) {
+    ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         blotToken = BlottoToken(_tokenAddress);
         i_entryMinimum = entryMinimum;
         i_interval = interval;
+        i_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         i_gasLane = gasLane;
         i_subscription_id = subscription_id;
         i_callbackGasLimit = callbackGasLimit;
-        require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");                
+        require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");  
+
         s_lotteryStateOpen = true;
     }
 
-    function getTheBlockNumber() public view returns (uint256) {
-        return block.number;
+    /// @notice Transfer $BLOT token(s) from the sender to the contract for the current lottery
+    /// @param tokenAmount Total number of tokens being passed
+    function getTicket(uint256 tokenAmount) external payable {   
+        // make sure at least 1 token was sent
+        if (tokenAmount == 0) { revert Lottery_NotEnoughTokensSent(); }
+
+        // make sure the allowance is enough
+        if (blotToken.allowance(_msgSender(), address(this))>= tokenAmount) { revert Lottery_AllowanceNotEnough(); }
+
+        // make sure the sender actually has enough tokens
+        if (blotToken.balanceOf(_msgSender())>= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
+
+        // make sure the lottery is open
+        if (!s_lotteryStateOpen)  { revert Lottery_NotOpen(); }
+
+        // capture the sender & # of tix n2 s_ticketAddresses
+        for (uint256 i=0; i < tokenAmount; i++) s_ticketAddresses.push(_msgSender());
+
+        // transfer token(s) from the sender to Blotto
+        blotToken.transfer(address(this), tokenAmount);
+
+        emit GotTicket(s_lottery_id, _msgSender(), tokenAmount); 
     }
 
-    function getTokenAllowance() public view returns (uint256) {
-        console.log("_msgSender() = %s", _msgSender());
-        console.log("address(this) = %s", address(this));
-        console.log( blotToken.allowance(_msgSender(), address(this)));
-        
+    function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
+        // make sure at least 1 ticket was acquired before proceeding
+        if ((s_ticketAddresses.length > 0)) { revert Lottery_NoTicketsAcquired(); }
+
+        uint256 totalTickets = s_ticketAddresses.length;
+
+        uint256 indexOfWinner = randomWords[0] % totalTickets;
+        address winner = s_ticketAddresses[indexOfWinner];
+
+        emit WinnerPicked(s_lottery_id, winner);
+
+        uint256 winner_tokens;
+        uint256 charity_tokens;
+        uint256 dao_tokens;
+
+        // transfer tokens: 80% to winner, 19% to charity, 1% to DAO
+        if (totalTickets < 100)
+            winner_tokens = totalTickets;
+        else {
+            winner_tokens = uint256(int256(int256(totalTickets) / int256(100)) * int256(80));
+            charity_tokens = uint256(int256(int256(totalTickets) / int256(100)) * int256(19));
+            dao_tokens = uint256((int256(totalTickets) - (int256(winner_tokens) + int256(charity_tokens))));
+        }
+
+//        s_lastTimeStamp = block.timestamp;
+        blotToken.transferFrom(address(this), winner, winner_tokens);
+        emit TicketTransferred(s_lottery_id, winner, winner_tokens); 
+
+        if (charity_tokens > 0) {
+            blotToken.transferFrom(address(this), CHARITY_ADDRESS, charity_tokens);
+            blotToken.transferFrom(address(this), DAO_ADDRESS, dao_tokens);
+
+            emit TicketTransferred(s_lottery_id, CHARITY_ADDRESS, charity_tokens); 
+            emit TicketTransferred(s_lottery_id, DAO_ADDRESS, dao_tokens); 
+        }
+
+        delete s_ticketAddresses;
+        s_lotteryStateOpen = true;
+    }
+
+    function getTokenAllowance() external view returns (uint256) {
         return blotToken.allowance(_msgSender(), address(this));
-    }
-
-    function approveTokens(uint256 tokenAmount) public {
-//        if (tokenAmount == 0) { revert Lottery_NoTokensSentForApproval(); }
-        bool approved = blotToken.approve (address(this), tokenAmount);
-        require (approved, "approve failed");
-        
-        console.log("msg.sender = %s", msg.sender);
-        console.log("address(this) = %s", address(this));
-        console.log("tokenAmount = %s", tokenAmount);
-        console.log("blotToken = %s", address(blotToken));
-        console.log("approved = %s", approved);
-
-        console.log("blotToken.allowance(_msgSender(), address(this)) = %s", 
-            blotToken.allowance(_msgSender(), address(this)));
-
-    }
-
-    function buyTicket(uint256 tokenAmount) public payable {   
-//        bool approved = blotToken.approve(msg.sender, tokenAmount);
-//        require (approved, "Was not approved");
-        console.log("msg.sender = %s", _msgSender());
-        console.log("tokenAmount = %s", tokenAmount);
-//        console.log("blotToken.allowance(_msgSender(), address(this)) = %s", 
-           // blotToken.allowance(_msgSender(), address(this)));
-
-        console.log("blotToken.balanceOf(_msgSender() = %s", blotToken.balanceOf(_msgSender()));
-
-//        bool approved = blotToken.approve (address(this), tokenAmount);
-//        require (approved, "approve failed");
-//        console.log("approved = %s", approved);
-
-        blotToken.transferFrom(msg.sender, address(this), tokenAmount);
     }
 
     function getBlotTokenAddress() public view returns (address) {
