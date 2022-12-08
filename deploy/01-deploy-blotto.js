@@ -8,7 +8,6 @@ module.exports = async ({ getNamedAccounts, deployments}) => {
     
     const args = [
         process.env.TOKEN_ADDRESS, 
-        networkConfig[chainId]["ENTRY_MINIMUM_TOKENS"],
         networkConfig[chainId]["automationUpdateInterval"],
         networkConfig[chainId]["vrfCoordinatorV2"], 
         networkConfig[chainId]["gasLane"],

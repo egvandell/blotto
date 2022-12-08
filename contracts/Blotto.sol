@@ -18,6 +18,7 @@ error Lottery_AllowanceNotEnough();
 error Lottery_NeedMoreTokensInsufficientBalance();
 error Lottery_NotOpen();
 error Lottery_NoTicketsAcquired();
+error Lottery_UpkeepNotNeeded();
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     // need to add logic so only the DAO can change these via multisig wallat
@@ -31,19 +32,22 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     uint16 private s_lottery_id;                        // current lottery id, defaults to 0
     address[] private s_ticketAddresses;                // each index is an individual ticket
 
-    event GotTicket(uint16 indexed s_lottery_id, address indexed from, uint256 amount);
-    event WinnerPicked(uint16 indexed s_lottery_id, address indexed winner);
-    event TicketTransferred(uint16 indexed s_lottery_id, address indexed target, uint256 amount);
-
-    uint256 public immutable i_entryMinimum;
     uint256 public immutable i_interval;
+    uint256 public s_lastTimeStamp;
     VRFCoordinatorV2Interface public immutable i_vrfCoordinatorV2;
     bytes32 public immutable i_gasLane;
     uint64 public immutable i_subscription_id;
     uint32 public immutable i_callbackGasLimit;
+    uint16 public constant REQUEST_CONFIRMATIONS = 3;
+    uint32 public constant NUM_WORDS = 1;
+
+
+    event GotTicket(uint16 indexed s_lottery_id, address indexed from, uint256 amount);
+    event WinnerPicked(uint16 indexed s_lottery_id, address indexed winner);
+    event TicketTransferred(uint16 indexed s_lottery_id, address indexed target, uint256 amount);
+    event RequestedLotteryWinner(uint256 indexed requestId);
 
     constructor(address _tokenAddress,
-        uint256 entryMinimum,
         uint256 interval,
         address vrfCoordinatorV2,
         bytes32 gasLane, //keyhash - decide on how much gas
@@ -51,8 +55,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         uint32 callbackGasLimit
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         blotToken = BlottoToken(_tokenAddress);
-        i_entryMinimum = entryMinimum;
         i_interval = interval;
+        s_lastTimeStamp = block.timestamp;
         i_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         i_gasLane = gasLane;
         i_subscription_id = subscription_id;
@@ -86,6 +90,33 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         emit GotTicket(s_lottery_id, _msgSender(), tokenAmount); 
     }
 
+    function checkUpkeep(bytes memory /*performData*/) public view returns (
+        bool upkeepNeeded, 
+        bytes memory /*performData*/
+        )
+    {
+        bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
+        bool hasPlayers = s_ticketAddresses.length > 0;
+        upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
+        return (upkeepNeeded, "0x0");
+    }
+
+    function performUpkeep (bytes calldata /*performData*/) external {
+        (bool upkeepNeeded, ) = checkUpkeep("");
+        if (!upkeepNeeded) { revert Lottery_UpkeepNotNeeded();}
+
+        s_lotteryStateOpen = false;
+
+        uint256 requestId = i_vrfCoordinatorV2.requestRandomWords(
+            i_gasLane,
+            i_subscription_id,
+            REQUEST_CONFIRMATIONS,
+            i_callbackGasLimit,
+            NUM_WORDS
+        );
+        emit RequestedLotteryWinner(requestId);
+    }
+
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
         // make sure at least 1 ticket was acquired before proceeding
         if ((s_ticketAddresses.length > 0)) { revert Lottery_NoTicketsAcquired(); }
@@ -110,7 +141,6 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
             dao_tokens = uint256((int256(totalTickets) - (int256(winner_tokens) + int256(charity_tokens))));
         }
 
-//        s_lastTimeStamp = block.timestamp;
         blotToken.transferFrom(address(this), winner, winner_tokens);
         emit TicketTransferred(s_lottery_id, winner, winner_tokens); 
 
@@ -122,6 +152,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
             emit TicketTransferred(s_lottery_id, DAO_ADDRESS, dao_tokens); 
         }
 
+        s_lastTimeStamp = block.timestamp;
         delete s_ticketAddresses;
         s_lotteryStateOpen = true;
     }
