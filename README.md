@@ -16,7 +16,7 @@ https://github.com/wighawag/hardhat-deploy
 
 suggest using yarn - dependencies failed on mac & pc using npm for hardhat-deploy
 
-yarn add --dev hardhat-deploy @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers prettier-plugin-solidity prettier dotenv @nomiclabs/hardhat-waffle
+yarn add --dev hardhat-deploy @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers prettier-plugin-solidity prettier dotenv @nomiclabs/hardhat-waffle @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers
 
 
 ***********

@@ -13,12 +13,12 @@ import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
 
 import "hardhat/console.sol";
 
-error Lottery_NotEnoughTokensSent();
 error Lottery_AllowanceNotEnough();
 error Lottery_NeedMoreTokensInsufficientBalance();
 error Lottery_NotOpen();
 error Lottery_NoTicketsAcquired();
 error Lottery_UpkeepNotNeeded();
+
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     // need to add logic so only the DAO can change these via multisig wallat
@@ -69,17 +69,13 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     /// @notice Transfer $BLOT token(s) from the sender to the contract for the current lottery
     /// @param tokenAmount Total number of tokens being passed
     function getTicket(uint256 tokenAmount) external payable {   
-        // make sure at least 1 token was sent
-        if (tokenAmount == 0) { revert Lottery_NotEnoughTokensSent(); }
-
-        // make sure the allowance is enough
-        if (blotToken.allowance(_msgSender(), address(this))>= tokenAmount) { revert Lottery_AllowanceNotEnough(); }
-
-        // make sure the sender actually has enough tokens
-        if (blotToken.balanceOf(_msgSender())>= tokenAmount) { revert Lottery_NeedMoreTokensInsufficientBalance(); }
+        require (tokenAmount > 0, "Not Enough Tokens Sent");
+        require (blotToken.allowance(_msgSender(), address(this))>= tokenAmount, "Allowance Insufficient");
+        require (blotToken.balanceOf(_msgSender())>= tokenAmount, "Insufficient Token Balance");
+        require (s_lotteryStateOpen, "Lottery is not open");
 
         // make sure the lottery is open
-        if (!s_lotteryStateOpen)  { revert Lottery_NotOpen(); }
+//        if (!s_lotteryStateOpen)  { revert Lottery_NotOpen(); }
 
         // capture the sender & # of tix n2 s_ticketAddresses
         for (uint256 i=0; i < tokenAmount; i++) s_ticketAddresses.push(_msgSender());
