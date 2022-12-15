@@ -42,9 +42,9 @@ describe('Blotto Contract', () => {
         });
         it("Revert if lottery is not open", async function () {
             const { BlottoContract } = await loadFixture(deployBlottoFixture);
-            console.log("BlottoContract.s_lotteryStateOpen()="+BlottoContract.s_lotteryStateOpen());
-            await expect(BlottoContract.s_lotteryStateOpen()).to.equal(true);
-//                to.be.revertedWith("Lottery is not open");
+            const lotteryStateOpen = await BlottoContract.s_lotteryStateOpen();
+//            console.log("BlottoContract.s_lotteryStateOpen()="+lotteryStateOpen);
+            expect (await BlottoContract.s_lotteryStateOpen()).to.equal(true).to.be.revertedWith("Lottery is not open");
         });
     });
 });
