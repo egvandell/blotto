@@ -24,7 +24,7 @@ module.exports = {
   },
   namedAccounts: {
     deployer: {
-      default: 0,
+      default: 1    
     }
   },
   solidity: "0.8.5",

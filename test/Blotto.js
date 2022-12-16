@@ -5,7 +5,9 @@ const { expect } = require("chai");
 describe('Blotto Contract', () => {
     async function deployBlottoFixture() {
         await deployments.fixture(['Blotto']);
-        const {tokenOwner} = await getNamedAccounts();
+//        const {tokenOwner} = await getNamedAccounts();
+        accounts = await ethers.getSigners();
+        tokenOwner = accounts[1];   // also specified in hardhat.config.js
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
 //        console.log(`BlottoContract.address for Blotto.js found at${BlottoContract.address}`);
