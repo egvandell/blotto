@@ -6,6 +6,8 @@ describe('Blotto Contract', () => {
     async function deployBlottoFixture() {
         await deployments.fixture(['Blotto']);
         const {tokenOwner} = await getNamedAccounts();
+//        console.log("tokenOwner="+tokenOwner.address);
+
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
 //        console.log(`BlottoContract.address for Blotto.js found at${BlottoContract.address}`);
@@ -42,9 +44,19 @@ describe('Blotto Contract', () => {
         });
         it("Revert if lottery is not open", async function () {
             const { BlottoContract } = await loadFixture(deployBlottoFixture);
-            const lotteryStateOpen = await BlottoContract.s_lotteryStateOpen();
+//            const lotteryStateOpen = await BlottoContract.s_lotteryStateOpen();
 //            console.log("BlottoContract.s_lotteryStateOpen()="+lotteryStateOpen);
             expect (await BlottoContract.s_lotteryStateOpen()).to.equal(true).to.be.revertedWith("Lottery is not open");
+        });
+        it("Emits event when successfully got a ticket", async function () {
+            const { BlottoContract, BlottoTokenContract, owner } = await loadFixture(deployBlottoFixture);
+            await BlottoTokenContract.approve(BlottoContract.address, 1);
+
+            const getTokenBalanceSender = await BlottoContract.getTokenBalanceSender();
+            console.log("owner="+owner.address);
+            console.log("BlottoContract.getTokenBalanceSender()="+getTokenBalanceSender);
+
+            await expect(BlottoContract.getTicket("1")).to.emit(BlottoContract, "GotTicket")
         });
     });
 });
