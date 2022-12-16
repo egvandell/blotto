@@ -13,12 +13,6 @@ import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
 
 import "hardhat/console.sol";
 
-error Lottery_AllowanceNotEnough();
-error Lottery_NeedMoreTokensInsufficientBalance();
-error Lottery_NotOpen();
-error Lottery_NoTicketsAcquired();
-error Lottery_UpkeepNotNeeded();
-
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     // need to add logic so only the DAO can change these via multisig wallat
@@ -74,14 +68,11 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         require (blotToken.balanceOf(_msgSender())>= tokenAmount, "Insufficient Token Balance");
         require (s_lotteryStateOpen, "Lottery is not open");
 
-        // make sure the lottery is open
-//        if (!s_lotteryStateOpen)  { revert Lottery_NotOpen(); }
-
         // capture the sender & # of tix n2 s_ticketAddresses
         for (uint256 i=0; i < tokenAmount; i++) s_ticketAddresses.push(_msgSender());
 
         // transfer token(s) from the sender to Blotto
-        blotToken.transfer(address(this), tokenAmount);
+        blotToken.transferFrom(_msgSender(), address(this), tokenAmount);
 
         emit GotTicket(s_lottery_id, _msgSender(), tokenAmount); 
     }
@@ -99,7 +90,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function performUpkeep (bytes calldata /*performData*/) external {
         (bool upkeepNeeded, ) = checkUpkeep("");
-        if (!upkeepNeeded) { revert Lottery_UpkeepNotNeeded();}
+
+        require (!upkeepNeeded, "Upkeep Not Needed");
 
         s_lotteryStateOpen = false;
 
@@ -115,7 +107,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
         // make sure at least 1 ticket was acquired before proceeding
-        if ((s_ticketAddresses.length > 0)) { revert Lottery_NoTicketsAcquired(); }
+        require ((s_ticketAddresses.length > 0), "No Tickets Acquired");
 
         uint256 totalTickets = s_ticketAddresses.length;
 
