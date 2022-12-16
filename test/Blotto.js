@@ -5,9 +5,7 @@ const { expect } = require("chai");
 describe('Blotto Contract', () => {
     async function deployBlottoFixture() {
         await deployments.fixture(['Blotto']);
-        const {tokenOwner} = (await getNamedAccounts()).deployer;
-//        console.log("tokenOwner="+tokenOwner.address);
-
+        const {tokenOwner} = await getNamedAccounts();
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
 //        console.log(`BlottoContract.address for Blotto.js found at${BlottoContract.address}`);
