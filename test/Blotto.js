@@ -7,7 +7,7 @@ describe('Blotto Contract', () => {
         await deployments.fixture(['Blotto']);
 //        const {tokenOwner} = await getNamedAccounts();
         accounts = await ethers.getSigners();
-        tokenOwner = accounts[1];   // also specified in hardhat.config.js
+        tokenOwner = accounts[0];   // also specified in hardhat.config.js
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
 //        console.log(`BlottoContract.address for Blotto.js found at${BlottoContract.address}`);
@@ -16,12 +16,7 @@ describe('Blotto Contract', () => {
         return { BlottoContract, BlottoTokenContract, owner, addr1, addr2 };
     }
     describe("Deployment", function () {
-        it("1- Received token address is not 0", async function () {
-            const { BlottoContract } = await loadFixture(deployBlottoFixture);
-            expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
-        });
-
-        it("2- Received token address is not 0", async function () {
+        it("Received token address is not 0", async function () {
             const { BlottoContract } = await loadFixture(deployBlottoFixture);
             expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
         });
@@ -53,6 +48,27 @@ describe('Blotto Contract', () => {
             await BlottoTokenContract.approve(BlottoContract.address, 1);
             const getTokenBalanceSender = await BlottoContract.getTokenBalanceSender();
             await expect(BlottoContract.getTicket(1)).to.emit(BlottoContract, "GotTicket")
+        });
+    });
+
+    describe("checkUpkeep", function () {
+        it("Placeholder", async function () {
+            const { BlottoContract } = await loadFixture(deployBlottoFixture);
+            expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
+        });
+    });
+
+    describe("performUpkeep", function () {
+        it("Placeholder", async function () {
+            const { BlottoContract } = await loadFixture(deployBlottoFixture);
+            expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
+        });
+    });
+
+    describe("fulfillRandomWords", function () {
+        it("Placeholder", async function () {
+            const { BlottoContract } = await loadFixture(deployBlottoFixture);
+            expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
         });
     });
 });
