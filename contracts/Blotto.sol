@@ -10,6 +10,7 @@ import "./BlottoToken.sol";
 
 import '@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol';
 import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
+import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
 import "hardhat/console.sol";
 
@@ -142,6 +143,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
         s_lastTimeStamp = block.timestamp;
         delete s_ticketAddresses;
+        s_lottery_id++;
         s_lotteryStateOpen = true;
     }
 

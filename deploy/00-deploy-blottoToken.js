@@ -10,11 +10,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
           from: deployer,
           log: true,
       });
-    if (blottoToken.newlyDeployed) {
+//      await blottoToken.deployed();
+//    if (blottoToken.deployed) {
       process.env.TOKEN_ADDRESS = blottoToken.address;
       console.log(
         `Deployed BlottoToken.sol to ${blottoToken.address}`
       );
-    }
+//    }
 //  }
 }
