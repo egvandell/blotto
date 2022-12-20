@@ -78,19 +78,39 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         emit GotTicket(s_lottery_id, _msgSender(), tokenAmount); 
     }
 
-    function checkUpkeep(bytes memory /*performData*/) public view returns (
-        bool upkeepNeeded, 
-        bytes memory /*performData*/
+// make sure to re-comment out the performData parameter here, uncommented for testing
+//    function checkUpkeep(bytes memory performData) public view returns (
+    function checkUpkeep() public view returns (
+        bool upkeepNeeded //, 
+  //      bytes memory /*performData*/
         )
     {
+        console.log("started checkUpkeep");
+bytes memory performData;
+//        bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
+//        bool hasPlayers = s_ticketAddresses.length > 0;
+//        upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
+//        return (upkeepNeeded, "0x0");
+        return (upkeepNeeded);
+    }
+
+
+//    function checkUpkeep(bytes memory performData) public view returns (
+//        bool upkeepNeeded, 
+//        bytes memory /*performData*/
+/*        )
+    {
+        console.log("started checkUpkeep");
+
         bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
         bool hasPlayers = s_ticketAddresses.length > 0;
         upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
         return (upkeepNeeded, "0x0");
     }
-
+    */
     function performUpkeep (bytes calldata /*performData*/) external {
-        (bool upkeepNeeded, ) = checkUpkeep("");
+        (bool upkeepNeeded) = checkUpkeep();
+//        (bool upkeepNeeded, ) = checkUpkeep("");
 
         require (!upkeepNeeded, "Upkeep Not Needed");
 
