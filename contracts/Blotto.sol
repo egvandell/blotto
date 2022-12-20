@@ -80,25 +80,16 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
 // make sure to re-comment out the performData parameter here, uncommented for testing
 //    function checkUpkeep(bytes memory performData) public view returns (
-    function checkUpkeep() public view returns (
-        bool upkeepNeeded //, 
-  //      bytes memory /*performData*/
-        )
+/*    function checkUpkeepTest() public view returns (uint256)
     {
-        console.log("started checkUpkeep");
-bytes memory performData;
-//        bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
-//        bool hasPlayers = s_ticketAddresses.length > 0;
-//        upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
-//        return (upkeepNeeded, "0x0");
-        return (upkeepNeeded);
+        return blotToken.balanceOf(_msgSender());
     }
+*/
 
-
-//    function checkUpkeep(bytes memory performData) public view returns (
-//        bool upkeepNeeded, 
-//        bytes memory /*performData*/
-/*        )
+    function checkUpkeep(bytes calldata performData) public view returns (
+        bool upkeepNeeded, 
+        bytes memory /*performData*/
+        )
     {
         console.log("started checkUpkeep");
 
@@ -107,12 +98,12 @@ bytes memory performData;
         upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
         return (upkeepNeeded, "0x0");
     }
-    */
-    function performUpkeep (bytes calldata /*performData*/) external {
-        (bool upkeepNeeded) = checkUpkeep();
-//        (bool upkeepNeeded, ) = checkUpkeep("");
 
-        require (!upkeepNeeded, "Upkeep Not Needed");
+    function performUpkeep (bytes calldata /*performData*/) external {
+//        (bool upkeepNeeded, ) = checkUpkeep(bytes("0x"));
+
+//        require (!upkeepNeeded, "Upkeep Not Needed");
+
 
         s_lotteryStateOpen = false;
 
