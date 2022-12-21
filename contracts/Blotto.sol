@@ -96,16 +96,26 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
         bool hasPlayers = s_ticketAddresses.length > 0;
         upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
+
+        console.log("end of checkUpkeep");
+
         return (upkeepNeeded, "0x0");
     }
 
-    function performUpkeep (bytes calldata /*performData*/) external {
-//        (bool upkeepNeeded, ) = checkUpkeep(bytes("0x"));
+    function performUpkeep (bytes calldata performData) external 
+    {
+        console.log("started performUpkeep");
+/*
+        bytes calldata mycalldata;  // empty 
+        (bool upkeepNeeded, ) = checkUpkeep(mycalldata);
 
-//        require (!upkeepNeeded, "Upkeep Not Needed");
+        require (!upkeepNeeded, "Upkeep Not Needed");
+*/
 
-
+        console.log("performUpkeep1");
         s_lotteryStateOpen = false;
+
+        console.log("performUpkeep2");
 
         uint256 requestId = i_vrfCoordinatorV2.requestRandomWords(
             i_gasLane,
@@ -114,7 +124,12 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
             i_callbackGasLimit,
             NUM_WORDS
         );
+
+        console.log("performUpkeep3");
+
         emit RequestedLotteryWinner(requestId);
+
+        console.log("finished performUpkeep");
     }
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
