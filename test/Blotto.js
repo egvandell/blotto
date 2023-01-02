@@ -1,6 +1,8 @@
 const { deployments } = require('hardhat');
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
+const { assert } = require("chai");
+
 //const { BigNumber } = require("ethers");
 
 describe('Blotto Contract', () => {
@@ -55,16 +57,46 @@ describe('Blotto Contract', () => {
     });
 
     describe("checkUpkeep", function () {
-        it("Placeholder", async function () {
-            const { BlottoContract } = await loadFixture(deployBlottoFixture);
-            expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
+        it("fails if not enough time has passed", async function () {
+            const { BlottoContract, BlottoTokenContract } = await loadFixture(deployBlottoFixture);
+            interval = await BlottoContract.getInterval()
+
+            await BlottoTokenContract.approve(BlottoContract.address, "1");
+            await BlottoContract.getTicket("1");
+            await network.provider.send("evm_increaseTime", [interval.toNumber() - 5]) // use a higher number here if this test fails
+            await network.provider.request({ method: "evm_mine", params: [] })
+
+            const { upkeepNeeded } = await BlottoContract.callStatic.checkUpkeep("0x");
+            expect(upkeepNeeded).to.to.equal(false);
+        });
+        it("succeeds if enough time has passed, the lottery is open and there are players (tokens)", async function () {
+            const { BlottoContract, BlottoTokenContract } = await loadFixture(deployBlottoFixture);
+            interval = await BlottoContract.getInterval();
+
+            await BlottoTokenContract.approve(BlottoContract.address, "1");
+            await BlottoContract.getTicket("1");
+
+            await network.provider.send("evm_increaseTime", [interval.toNumber() + 1]);
+            await network.provider.request({ method: "evm_mine", params: [] });
+
+            const { upkeepNeeded } = await BlottoContract.callStatic.checkUpkeep("0x");
+            expect(upkeepNeeded).to.to.equal(true);
         });
     });
 
     describe("performUpkeep", function () {
-        it("Placeholder", async function () {
-            const { BlottoContract } = await loadFixture(deployBlottoFixture);
-            expect(await BlottoContract.getBlotTokenAddress()).to.not.equal(0);
+        it("only runs when checkUpkeep returns true", async function () {
+            const { BlottoContract, BlottoTokenContract } = await loadFixture(deployBlottoFixture);
+            interval = await BlottoContract.getInterval();
+
+            await BlottoTokenContract.approve(BlottoContract.address, "1");
+            await BlottoContract.getTicket("1");
+
+            await network.provider.send("evm_increaseTime", [interval.toNumber() + 1]);
+            await network.provider.request({ method: "evm_mine", params: [] });
+
+            const { tx } = await BlottoContract.performUpkeep("0x");
+            assert (tx);
         });
     });
 

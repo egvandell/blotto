@@ -91,13 +91,9 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         bytes memory /*performData*/
         )
     {
-        console.log("started checkUpkeep");
-
         bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
         bool hasPlayers = s_ticketAddresses.length > 0;
         upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
-
-        console.log("end of checkUpkeep");
 
         return (upkeepNeeded, "0x0");
     }
@@ -191,6 +187,14 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function getTokenBalanceContract() public view returns (uint256) {
         return blotToken.balanceOf(address(this));
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
+    }
+
+    function getLotteryState() public view returns (bool) {
+        return s_lotteryStateOpen;
     }
 
     receive() external payable {} // to support receiving ETH by default
