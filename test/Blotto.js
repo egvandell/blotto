@@ -1,6 +1,7 @@
 const { deployments } = require('hardhat');
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
+//const { BigNumber } = require("ethers");
 
 describe('Blotto Contract', () => {
     async function deployBlottoFixture() {
@@ -10,7 +11,9 @@ describe('Blotto Contract', () => {
         tokenOwner = accounts[0];   // also specified in hardhat.config.js
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
-//        console.log(`BlottoContract.address for Blotto.js found at${BlottoContract.address}`);
+        const vrfCoordinatorV2Mock = await ethers.getContract('VRFCoordinatorV2Mock', tokenOwner);
+
+        console.log(`vrfCoordinatorV2Mock.address for Blotto.js found at ${vrfCoordinatorV2Mock.address}`);
         const [owner, addr1, addr2] = await ethers.getSigners();
 
         return { BlottoContract, BlottoTokenContract, owner, addr1, addr2 };

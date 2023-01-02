@@ -13,6 +13,8 @@ const networkConfig = {
         gasLane: "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15",
         automationUpdateInterval: "300",
         callbackGasLimit: "500000", // 500,000 gas
+        BASE_FEE: "25000000000000000",
+        GAS_PRICE_LINK: "1000000000",
     },
     5: {
         name: "goerli",
@@ -22,6 +24,8 @@ const networkConfig = {
         gasLane: "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15",
         automationUpdateInterval: "300",
         callbackGasLimit: "500000", // 500,000 gas
+        BASE_FEE: "25000000000000000",
+        GAS_PRICE_LINK: "1000000000",
     },
     1: {
         name: "mainnet",
