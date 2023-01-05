@@ -1,9 +1,6 @@
 const { deployments } = require('hardhat');
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { expect } = require("chai");
-const { assert } = require("chai");
-
-//const { BigNumber } = require("ethers");
+const { expect, assert } = require("chai");
 
 describe('Blotto Contract', () => {
     async function deployBlottoFixture() {
@@ -111,8 +108,26 @@ describe('Blotto Contract', () => {
             await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
             await network.provider.request({ method: "evm_mine", params: [] })
 
-            await expect(vrfCoordinatorV2Mock.fulfillRandomWords(0, BlottoContract.address)).to.be.revertedWith("nonexistent request")
-
+            await expect(vrfCoordinatorV2Mock.fulfillRandomWords(0, BlottoContract.address))
+                .to.be.revertedWith("nonexistent request")
         });
+        /*
+        it("Successfully picks a winner, transferred tokens, resets", async function () {
+            const { BlottoContract, BlottoTokenContract } = await loadFixture(deployBlottoFixture)
+            interval = await BlottoContract.getInterval()
+
+            await BlottoTokenContract.approve(BlottoContract.address, "80")
+            await BlottoContract.getTicket("80")
+
+// need 2 more addresses to join the lottery
+
+
+            await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+            await network.provider.request({ method: "evm_mine", params: [] })
+
+            await expect(vrfCoordinatorV2Mock.fulfillRandomWords(0, BlottoContract.address))
+                .to.be.revertedWith("nonexistent request")
+        });
+        */
     });
 });
