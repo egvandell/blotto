@@ -29,6 +29,8 @@ module.exports = async ({ getNamedAccounts, deployments}) => {
         networkConfig[chainId]["gasLane"],
         subscriptionId,
         networkConfig[chainId]["callbackGasLimit"], 
+        networkConfig[chainId]["CHARITY_ADDRESS"], 
+        networkConfig[chainId]["DAO_ADDRESS"], 
     ]
 
     const blotto = await deploy("Blotto", {

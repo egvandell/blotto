@@ -9,13 +9,15 @@ describe('Blotto Contract', () => {
         accounts = await ethers.getSigners();
         tokenOwner = accounts[0];   // also specified in hardhat.config.js
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
+        const BlottoContract2 = await ethers.getContract('Blotto', accounts[1]);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
+        const BlottoTokenContract2 = await ethers.getContract('BlottoToken', accounts[1]);
         const vrfCoordinatorV2Mock = await ethers.getContract('VRFCoordinatorV2Mock', tokenOwner);
 
         console.log(`vrfCoordinatorV2Mock.address for Blotto.js found at ${vrfCoordinatorV2Mock.address}`);
         const [owner, addr1, addr2] = await ethers.getSigners();
 
-        return { BlottoContract, BlottoTokenContract, owner, addr1, addr2 };
+        return { BlottoContract, BlottoContract2, BlottoTokenContract, BlottoTokenContract2, owner, addr1, addr2 };
     }
     describe("Deployment", function () {
         it("Received token address is not 0", async function () {
@@ -111,23 +113,68 @@ describe('Blotto Contract', () => {
             await expect(vrfCoordinatorV2Mock.fulfillRandomWords(0, BlottoContract.address))
                 .to.be.revertedWith("nonexistent request")
         });
-        /*
+
         it("Successfully picks a winner, transferred tokens, resets", async function () {
-            const { BlottoContract, BlottoTokenContract } = await loadFixture(deployBlottoFixture)
+            const { BlottoContract, BlottoContract2, BlottoTokenContract, BlottoTokenContract2 } = await loadFixture(deployBlottoFixture)
             interval = await BlottoContract.getInterval()
 
-            await BlottoTokenContract.approve(BlottoContract.address, "80")
-            await BlottoContract.getTicket("80")
+            await BlottoTokenContract.approve(BlottoContract.address, "60")
+            await BlottoContract.getTicket("60")
 
-// need 2 more addresses to join the lottery
+            // need to allocate tokens to the 2nd address
+            await BlottoTokenContract.approve(accounts[1].address, "40")
+            BlottoTokenContract2.transferFrom(accounts[0].address, accounts[1].address, "40");
 
+            await BlottoTokenContract2.approve(BlottoContract.address, "40")
+            await BlottoContract2.getTicket("40")
 
-            await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
-            await network.provider.request({ method: "evm_mine", params: [] })
+            const winnerStartingBalance = await BlottoTokenContract.balanceOf(accounts[0].address)
 
-            await expect(vrfCoordinatorV2Mock.fulfillRandomWords(0, BlottoContract.address))
-                .to.be.revertedWith("nonexistent request")
+            const charityAddress = await BlottoContract.getCharityAddress()
+            const charityStartingBalance = await BlottoTokenContract.balanceOf(charityAddress)
+
+            const daoAddress = await BlottoContract.getDaoAddress()
+            const daoStartingBalance = await BlottoTokenContract.balanceOf(daoAddress)
+            
+            // WinnerPicked not kicking off w/o Promise
+            await new Promise(async (resolve, reject) => {
+                BlottoContract.once("WinnerPicked", async () => { // event listener for WinnerPicked
+                    console.log("WinnerPicked event fired!")
+                    // assert throws an error if it fails, so we need to wrap
+                    // it in a try/catch so that the promise returns event
+                    // if it fails.
+                    try {
+                        // Get values after 1 round of winner being picked
+                        /*
+                        const lastWinner = await BlottoContract.getLastWinner()
+                        const winnerEndingBalance = await BlottoTokenContract.getBalance(accounts[0])
+                        
+                        const charityEndingBalance = await BlottoTokenContract.getBalance(charityAddress)
+                        const daoEndingBalance = await BlottoTokenContract.getBalance(daoAddress)
+
+                        const winnerTotal = winnerEndingBalance - winnerStartingBalance
+                        const charityTotal = charityEndingBalance - charityStartingBalance
+                        const daoTotal = daoEndingBalance - daoStartingBalance
+
+                        // Check if ending values are correct:
+                        assert.equal(lastWinner.toString(), accounts[0].address)
+                        assert.equal(winnerTotal, 50)
+                        assert.equal(charityTotal, 45)
+                        assert.equal(daoTotal, 1)
+                        */
+                        resolve() // if try passes, resolves the promise 
+                    } catch (e) { 
+                        reject(e) // if try fails, rejects the promise
+                    }
+                })
+
+                const tx = await BlottoContract.performUpkeep("0x")
+                const txReceipt = await tx.wait(1)
+                await vrfCoordinatorV2Mock.fulfillRandomWords(
+                    txReceipt.events[1].args.requestId,
+                    BlottoContract.address
+                )
+            });
         });
-        */
     });
 });

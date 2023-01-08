@@ -17,14 +17,17 @@ import "hardhat/console.sol";
 
 contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     // need to add logic so only the DAO can change these via multisig wallat
-    address public CHARITY_ADDRESS;                     // Current Charity Address
-    address public DAO_ADDRESS;                         // BlottoDAO address
+    address public s_charityAddress;                     // Current Charity Address, needs to be locked down
+    address public s_daoAddress;                         // BlottoDAO address
 
-    mapping(uint16 => address) public BlottoWinners;    // lottery_id to winner address
+
+//    mapping(uint16 => address) public BlottoWinners;    // lottery_id to winner address
     BlottoToken public blotToken;                       // $BLOT
     bool public s_lotteryStateOpen;                     // Blotto state
 
     uint16 private s_lottery_id;                        // current lottery id, defaults to 0
+    address private s_lastWinner;                       // last winner
+
     address[] private s_ticketAddresses;                // each index is an individual ticket
 
     uint256 public immutable i_interval;
@@ -47,7 +50,9 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         address vrfCoordinatorV2,
         bytes32 gasLane, //keyhash - decide on how much gas
         uint64 subscription_id,
-        uint32 callbackGasLimit
+        uint32 callbackGasLimit,
+        address CHARITY_ADDRESS,
+        address DAO_ADDRESS
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         blotToken = BlottoToken(_tokenAddress);
         i_interval = interval;
@@ -56,7 +61,11 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         i_gasLane = gasLane;
         i_subscription_id = subscription_id;
         i_callbackGasLimit = callbackGasLimit;
+        s_charityAddress = CHARITY_ADDRESS;
+        s_daoAddress = DAO_ADDRESS;
         require(address(_tokenAddress) != address(0),"Token Address cannot be address 0");  
+        require(address(CHARITY_ADDRESS) != address(0),"Charity Address cannot be address 0");  
+        require(address(DAO_ADDRESS) != address(0),"DAO Address cannot be address 0");  
 
         s_lotteryStateOpen = true;
     }
@@ -128,12 +137,12 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         uint256 charity_tokens;
         uint256 dao_tokens;
 
-        // transfer tokens: 80% to winner, 19% to charity, 1% to DAO
+        // transfer tokens: 50% to winner, 45% to charity, 5% to DAO
         if (totalTickets < 100)
             winner_tokens = totalTickets;
         else {
-            winner_tokens = uint256(int256(int256(totalTickets) / int256(100)) * int256(80));
-            charity_tokens = uint256(int256(int256(totalTickets) / int256(100)) * int256(19));
+            winner_tokens = uint256(int256(int256(totalTickets) / int256(100)) * int256(50));
+            charity_tokens = uint256(int256(int256(totalTickets) / int256(100)) * int256(45));
             dao_tokens = uint256((int256(totalTickets) - (int256(winner_tokens) + int256(charity_tokens))));
         }
 
@@ -141,11 +150,11 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         emit TicketTransferred(s_lottery_id, winner, winner_tokens); 
 
         if (charity_tokens > 0) {
-            blotToken.transferFrom(address(this), CHARITY_ADDRESS, charity_tokens);
-            blotToken.transferFrom(address(this), DAO_ADDRESS, dao_tokens);
+            blotToken.transferFrom(address(this), s_charityAddress, charity_tokens);
+            blotToken.transferFrom(address(this), s_daoAddress, dao_tokens);
 
-            emit TicketTransferred(s_lottery_id, CHARITY_ADDRESS, charity_tokens); 
-            emit TicketTransferred(s_lottery_id, DAO_ADDRESS, dao_tokens); 
+            emit TicketTransferred(s_lottery_id, s_charityAddress, charity_tokens); 
+            emit TicketTransferred(s_lottery_id, s_daoAddress, dao_tokens); 
         }
 
         s_lastTimeStamp = block.timestamp;
@@ -164,6 +173,18 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
 
     function getLotteryId() public view returns (uint16) {
         return s_lottery_id;
+    }
+
+    function getCharityAddress() public view returns (address) {
+        return s_charityAddress;
+    }
+
+    function getDaoAddress() public view returns (address) {
+        return s_daoAddress;
+    }
+
+    function getLastWinner() public view returns (address) {
+        return s_lastWinner;
     }
 
     function getTokenBalanceSender() public view returns (uint256) {

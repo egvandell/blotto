@@ -15,6 +15,8 @@ const networkConfig = {
         callbackGasLimit: "500000", // 500,000 gas
         BASE_FEE: "25000000000000000",
         GAS_PRICE_LINK: "1000000000",
+        CHARITY_ADDRESS: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+        DAO_ADDRESS: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
     },
     5: {
         name: "goerli",
