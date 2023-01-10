@@ -120,7 +120,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         );
 
         emit RequestedLotteryWinner(requestId);
-    }
+        }
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
         // make sure at least 1 ticket was acquired before proceeding
@@ -146,12 +146,13 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
             dao_tokens = uint256((int256(totalTickets) - (int256(winner_tokens) + int256(charity_tokens))));
         }
 
-        blotToken.transferFrom(address(this), winner, winner_tokens);
+        blotToken.transfer(winner, winner_tokens);
+
         emit TicketTransferred(s_lottery_id, winner, winner_tokens); 
 
         if (charity_tokens > 0) {
-            blotToken.transferFrom(address(this), s_charityAddress, charity_tokens);
-            blotToken.transferFrom(address(this), s_daoAddress, dao_tokens);
+            blotToken.transfer(s_charityAddress, charity_tokens);
+            blotToken.transfer(s_daoAddress, dao_tokens);
 
             emit TicketTransferred(s_lottery_id, s_charityAddress, charity_tokens); 
             emit TicketTransferred(s_lottery_id, s_daoAddress, dao_tokens); 

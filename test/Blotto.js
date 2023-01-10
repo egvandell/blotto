@@ -118,15 +118,17 @@ describe('Blotto Contract', () => {
             const { BlottoContract, BlottoContract2, BlottoTokenContract, BlottoTokenContract2 } = await loadFixture(deployBlottoFixture)
             interval = await BlottoContract.getInterval()
 
-            await BlottoTokenContract.approve(BlottoContract.address, "60")
-            await BlottoContract.getTicket("60")
+            await BlottoTokenContract.approve(BlottoContract.address, "100")
+            await BlottoContract.getTicket("100")
 
+            /*
             // need to allocate tokens to the 2nd address
             await BlottoTokenContract.approve(accounts[1].address, "40")
             BlottoTokenContract2.transferFrom(accounts[0].address, accounts[1].address, "40");
 
             await BlottoTokenContract2.approve(BlottoContract.address, "40")
             await BlottoContract2.getTicket("40")
+            */
 
             const winnerStartingBalance = await BlottoTokenContract.balanceOf(accounts[0].address)
 
@@ -138,42 +140,41 @@ describe('Blotto Contract', () => {
             
             // WinnerPicked not kicking off w/o Promise
             await new Promise(async (resolve, reject) => {
-                BlottoContract.once("WinnerPicked", async () => { // event listener for WinnerPicked
-                    console.log("WinnerPicked event fired!")
-                    // assert throws an error if it fails, so we need to wrap
-                    // it in a try/catch so that the promise returns event
-                    // if it fails.
-                    try {
-                        // Get values after 1 round of winner being picked
-                        /*
-                        const lastWinner = await BlottoContract.getLastWinner()
-                        const winnerEndingBalance = await BlottoTokenContract.getBalance(accounts[0])
-                        
-                        const charityEndingBalance = await BlottoTokenContract.getBalance(charityAddress)
-                        const daoEndingBalance = await BlottoTokenContract.getBalance(daoAddress)
-
-                        const winnerTotal = winnerEndingBalance - winnerStartingBalance
-                        const charityTotal = charityEndingBalance - charityStartingBalance
-                        const daoTotal = daoEndingBalance - daoStartingBalance
-
-                        // Check if ending values are correct:
-                        assert.equal(lastWinner.toString(), accounts[0].address)
-                        assert.equal(winnerTotal, 50)
-                        assert.equal(charityTotal, 45)
-                        assert.equal(daoTotal, 1)
-                        */
-                        resolve() // if try passes, resolves the promise 
-                    } catch (e) { 
-                        reject(e) // if try fails, rejects the promise
-                    }
-                })
-
                 const tx = await BlottoContract.performUpkeep("0x")
                 const txReceipt = await tx.wait(1)
                 await vrfCoordinatorV2Mock.fulfillRandomWords(
                     txReceipt.events[1].args.requestId,
                     BlottoContract.address
                 )
+                
+                BlottoContract.once("WinnerPicked", async () => { // event listener for WinnerPicked
+//                    console.log("WinnerPicked event fired!")
+                    // assert throws an error if it fails, so we need to wrap
+                    // it in a try/catch so that the promise returns event
+                    // if it fails.
+                    try {
+                        // Get values after 1 round of winner being picked
+//                        const lastWinner = await BlottoContract.getLastWinner()
+                        const winnerEndingBalance = await BlottoTokenContract.balanceOf(accounts[0].address)
+                        const charityEndingBalance = await BlottoTokenContract.balanceOf(charityAddress)
+                        const daoEndingBalance = await BlottoTokenContract.balanceOf(daoAddress)
+
+                        // Check if ending values are correct:
+//                        assert.equal(lastWinner.toString(), accounts[0].address)
+                        assert.equal(winnerEndingBalance.sub(winnerStartingBalance), 50)
+                        assert.equal(charityEndingBalance.sub(charityStartingBalance), 45)
+                        assert.equal(daoEndingBalance.sub(daoStartingBalance), 5)
+
+                        // get new lottery_id
+                        const newLotteryId = await BlottoContract.getLotteryId();
+                        
+                        assert.equal(newLotteryId, 1)
+
+                        resolve() // if try passes, resolves the promise 
+                    } catch (e) { 
+                        reject(e) // if try fails, rejects the promise
+                    }
+                })
             });
         });
     });
