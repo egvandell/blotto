@@ -11,8 +11,8 @@ const networkConfig = {
         subscriptionId: "6275",
         vrfCoordinatorV2: "0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D",
         gasLane: "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15",
-        automationUpdateInterval: "300",
-        callbackGasLimit: "500000", // 500,000 gas
+        automationUpdateInterval: "10",
+        callbackGasLimit: "1000000", // 1,000,000 gas  --> raised to 1mm from .5mm bc low gas caused timeout
         BASE_FEE: "25000000000000000",
         GAS_PRICE_LINK: "1000000000",
         CHARITY_ADDRESS: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
