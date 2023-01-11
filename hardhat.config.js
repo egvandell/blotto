@@ -17,6 +17,12 @@ module.exports = {
         accounts: [process.env.PRIVATE_KEY],
         saveDeployments: true,
         chainId: 5,
+        verify: {
+          etherscan: {
+            apiKey: process.env.ETHERSCAN_API_KEY,
+            apiUrl: 'https://api-goerli.etherscan.io/'
+          },
+        },
     },
     mainnet: {
         url: process.env.MAINNET_RPC_URL,

@@ -114,7 +114,7 @@ describe('Blotto Contract', () => {
                 .to.be.revertedWith("nonexistent request")
         });
 
-        it("Successfully picks a winner, transferred tokens, resets", async function () {
+        it("Correctly picks winner, transferred tokens to winner/charity/dao, resets", async function () {
             const { BlottoContract, BlottoContract2, BlottoTokenContract, BlottoTokenContract2 } = await loadFixture(deployBlottoFixture)
             interval = await BlottoContract.getInterval()
 
