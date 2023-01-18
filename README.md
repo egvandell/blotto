@@ -19,6 +19,20 @@ suggest using yarn - dependencies failed on mac & pc using npm for hardhat-deplo
 yarn add --dev hardhat-deploy @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers prettier-plugin-solidity prettier dotenv @nomiclabs/hardhat-waffle @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers
 
 Thanks to PatrickAlphaC for his Raffle videos & code for reference!
+****
+Commonly used commands:
+yarn hardhat test --deploy-fixture
+yarn hardhat deploy
+yarn hardhat --network goerli etherscan-verify
+****
+.env file is needed at root (make sure to add to .gitignore):
+GOERLI_RPC_URL="[INSERT GOERLI_RPC_URL HERE]"
+MAINNET_RPC_URL="[INSERT MAINNET_RPC_URL HERE]"
+PRIVATE_KEY="[INSERT PRIVATE_KEY HERE]"
+TOKEN_ADDRESS=""
+ALCHEMY_MAINNET_RPC_URL="[INSERT ALCHEMY_MAINNET_RPC_URL HERE]"
+ETHERSCAN_API_KEY="[INSERT ETHERSCAN_API_KEY HERE]"
+
 ***********
 frontend - moved to separate repo
 https://github.com/egvandell/blotto-fe
