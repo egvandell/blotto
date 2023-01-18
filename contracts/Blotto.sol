@@ -15,7 +15,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.s
 import "hardhat/console.sol";
 
 
-contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
+contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, AutomationCompatibleInterface {
     // need to add logic so only the DAO can change these via multisig wallat
     address public s_charityAddress;                     // Current Charity Address, needs to be locked down
     address public s_daoAddress;                         // BlottoDAO address
@@ -95,7 +95,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
     }
 */
 
-    function checkUpkeep(bytes calldata performData) public view returns (
+    function checkUpkeep(bytes 
+        memory  performData  ) external view override returns (
         bool upkeepNeeded, 
         bytes memory /*performData*/
         )
@@ -107,7 +108,7 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard {
         return (upkeepNeeded, "0x0");
     }
 
-    function performUpkeep (bytes calldata performData) external 
+    function performUpkeep (bytes calldata performData ) external override
     {
         s_lotteryStateOpen = false;
 
