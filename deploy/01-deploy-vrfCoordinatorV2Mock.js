@@ -5,20 +5,21 @@ module.exports = async ({ getNamedAccounts, deployments}) => {
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
-    
-    const args = [
-        networkConfig[chainId]["BASE_FEE"],
-        networkConfig[chainId]["GAS_PRICE_LINK"], 
-    ]
+    if (chainId == 31337) {
+        const args = [
+            networkConfig[chainId]["BASE_FEE"],
+            networkConfig[chainId]["GAS_PRICE_LINK"], 
+        ]
 
-    const VRFCoordinatorV2Mock = await deploy("VRFCoordinatorV2Mock", {
-        from: deployer,
-        args: args,
-        log: true,
-        waitConfirmation: 6,
-    })
+        const VRFCoordinatorV2Mock = await deploy("VRFCoordinatorV2Mock", {
+            from: deployer,
+            args: args,
+            log: true,
+            waitConfirmation: 6,
+        })
 
-    console.log(
-        `Deployed VRFCoordinatorV2Mock.sol to ${VRFCoordinatorV2Mock.address}`
-      );
+        console.log(
+            `Deployed VRFCoordinatorV2Mock.sol to ${VRFCoordinatorV2Mock.address}`
+        );
+    }
 }

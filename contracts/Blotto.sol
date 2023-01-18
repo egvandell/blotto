@@ -125,6 +125,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
         // make sure at least 1 ticket was acquired before proceeding
+        console.log ("fulfillRandomWords started");
+        
         require ((s_ticketAddresses.length > 0), "No Tickets Acquired");
 
         uint256 totalTickets = s_ticketAddresses.length;
