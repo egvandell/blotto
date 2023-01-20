@@ -37,4 +37,6 @@ ETHERSCAN_API_KEY="[INSERT ETHERSCAN_API_KEY HERE]"
 frontend - moved to separate repo
 https://github.com/egvandell/blotto-fe
 
+NOTE: 03-update-front-end.js expects blotto-fe to be at the same directory level as blotto 
+
 Need to modify code to allow for no winner situation and proceeds going to subsequent drawing
