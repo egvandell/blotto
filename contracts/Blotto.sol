@@ -39,6 +39,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
     uint16 public constant REQUEST_CONFIRMATIONS = 3;
     uint32 public constant NUM_WORDS = 1;
 
+    uint256 private s_randomWords;
+
 
     event GotTicket(uint16 indexed s_lottery_id, address indexed from, uint256 amount);
     event WinnerPicked(uint16 indexed s_lottery_id, address indexed winner);
@@ -122,11 +124,14 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
 
         emit RequestedLotteryWinner(requestId);
         }
+    
+    function fulfillRandomWordsProxy(uint256 requestId, uint256[] memory randomWords) external {
+        fulfillRandomWords(requestId, randomWords);
+    }
 
-    function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal override {
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
         // make sure at least 1 ticket was acquired before proceeding
-        console.log ("fulfillRandomWords started");
-        
+        s_randomWords = randomWords[0];
         require ((s_ticketAddresses.length > 0), "No Tickets Acquired");
 
         uint256 totalTickets = s_ticketAddresses.length;
@@ -169,6 +174,10 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
 
     function getTokenAllowance() external view returns (uint256) {
         return blotToken.allowance(_msgSender(), address(this));
+    }
+ 
+    function getRandomWords() public view returns (uint256) {
+        return s_randomWords;
     }
 
     function getBlotTokenAddress() public view returns (address) {

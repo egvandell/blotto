@@ -9,15 +9,15 @@ describe('Blotto Contract', () => {
         accounts = await ethers.getSigners();
         tokenOwner = accounts[0];   // also specified in hardhat.config.js
         const BlottoContract = await ethers.getContract('Blotto', tokenOwner);
-        const BlottoContract2 = await ethers.getContract('Blotto', accounts[1]);
+//        const BlottoContract2 = await ethers.getContract('Blotto', accounts[1]);
         const BlottoTokenContract = await ethers.getContract('BlottoToken', tokenOwner);
-        const BlottoTokenContract2 = await ethers.getContract('BlottoToken', accounts[1]);
+//        const BlottoTokenContract2 = await ethers.getContract('BlottoToken', accounts[1]);
         const vrfCoordinatorV2Mock = await ethers.getContract('VRFCoordinatorV2Mock', tokenOwner);
 
         console.log(`vrfCoordinatorV2Mock.address for Blotto.js found at ${vrfCoordinatorV2Mock.address}`);
         const [owner, addr1, addr2] = await ethers.getSigners();
 
-        return { BlottoContract, BlottoContract2, BlottoTokenContract, BlottoTokenContract2, owner, addr1, addr2 };
+        return { BlottoContract, BlottoTokenContract, vrfCoordinatorV2Mock, owner, addr1, addr2 };
     }
     describe("Deployment", function () {
         it("Received token address is not 0", async function () {
@@ -101,7 +101,7 @@ describe('Blotto Contract', () => {
 
     describe("fulfillRandomWords", function () {
         it("only called after performUpkeep", async function () {
-            const { BlottoContract, BlottoTokenContract } = await loadFixture(deployBlottoFixture)
+            const { BlottoContract, BlottoTokenContract, vrfCoordinatorV2Mock } = await loadFixture(deployBlottoFixture)
             interval = await BlottoContract.getInterval()
 
             await BlottoTokenContract.approve(BlottoContract.address, "1")
@@ -115,11 +115,12 @@ describe('Blotto Contract', () => {
         });
 
         it("Correctly picks winner, transferred tokens to winner/charity/dao, resets", async function () {
-            const { BlottoContract, BlottoContract2, BlottoTokenContract, BlottoTokenContract2 } = await loadFixture(deployBlottoFixture)
+            const { BlottoContract, BlottoTokenContract, vrfCoordinatorV2Mock } = await loadFixture(deployBlottoFixture)
             interval = await BlottoContract.getInterval()
 
             await BlottoTokenContract.approve(BlottoContract.address, "100")
             await BlottoContract.getTicket("100")
+
 
             /*
             // need to allocate tokens to the 2nd address
