@@ -96,9 +96,18 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
         return blotToken.balanceOf(_msgSender());
     }
 */
+    function checkUpkeepProxy(bytes 
+        calldata checkData   ) public view returns (
+        bool upkeepNeeded, 
+        bytes memory /*performData*/
+        )
+    {
+        bytes memory performData;
+        (upkeepNeeded, performData) = checkUpkeep(checkData);
+    }
 
     function checkUpkeep(bytes 
-        memory  performData  ) external view override returns (
+        calldata  /*checkData*/    ) public view override returns (
         bool upkeepNeeded, 
         bytes memory /*performData*/
         )
@@ -107,10 +116,15 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
         bool hasPlayers = s_ticketAddresses.length > 0;
         upkeepNeeded = (timePassed && s_lotteryStateOpen && hasPlayers);
 
-        return (upkeepNeeded, "0x0");
+//        return (upkeepNeeded, "0x0");
     }
 
-    function performUpkeep (bytes calldata performData ) external override
+    function performUpkeepProxy (bytes calldata performData ) external 
+    {
+        performUpkeep(performData);
+    }
+    
+    function performUpkeep (bytes calldata /* performData */ ) public override
     {
         s_lotteryStateOpen = false;
 
@@ -123,8 +137,8 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
         );
 
         emit RequestedLotteryWinner(requestId);
-        }
-    
+    }
+
     function fulfillRandomWordsProxy(uint256 requestId, uint256[] memory randomWords) external {
         fulfillRandomWords(requestId, randomWords);
     }
