@@ -228,6 +228,11 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
         return s_lotteryStateOpen;
     }
 
+    function getBlockTimestamp() public view returns (uint256) {
+        return block.timestamp;
+    }
+
+
     receive() external payable {} // to support receiving ETH by default
     fallback() external payable {}
     function supportsInterface(bytes4 interfaceID) external pure { }

@@ -39,4 +39,8 @@ https://github.com/egvandell/blotto-fe
 
 NOTE: 03-update-front-end.js expects blotto-fe to be at the same directory level as blotto 
 
-Need to modify code to allow for no winner situation and proceeds going to subsequent drawing
+Need to:
+- modify code to allow for no winner situation and proceeds going to subsequent drawing. 
+- add logic to refill LINK
+- expose the Charity address to allow for changes via multi-sig
+- add dynamic NFT creation for winner
