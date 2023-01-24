@@ -89,13 +89,11 @@ contract Blotto is VRFConsumerBaseV2, Pausable, Ownable, ReentrancyGuard, Automa
         emit GotTicket(s_lottery_id, _msgSender(), tokenAmount); 
     }
 
-// make sure to re-comment out the performData parameter here, uncommented for testing
-//    function checkUpkeep(bytes memory performData) public view returns (
-/*    function checkUpkeepTest() public view returns (uint256)
-    {
-        return blotToken.balanceOf(_msgSender());
+    function getUserTicketCount() external view returns (uint256 totalTickets){
+        for (uint256 i=0; i < s_ticketAddresses.length; i++) 
+            if (s_ticketAddresses[i] == _msgSender()) totalTickets++;
     }
-*/
+
     function checkUpkeepProxy(bytes 
         calldata checkData   ) public view returns (
         bool upkeepNeeded, 
